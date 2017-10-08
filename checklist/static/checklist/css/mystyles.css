@@ -1,0 +1,155 @@
+/******* NB: logo color is #3BA590 ******/
+
+@media (min-width: 768px) {
+    div.checklist-head {
+       margin-left: 1em;
+    }
+    
+    .align-right {
+        text-align: right;
+        align-content: right;
+    }
+
+    .nav-push {
+        margin-left: 2em;
+    }
+
+    .adaptive-add {
+        width: 1.25em;
+        height: 1.25em;    
+        background-size: 1.25em;
+        background-image: url("../img/new.png");
+        
+        /*hide the text*/
+        text-indent: 200%;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .checklist-push {
+        margin-left: calc(50% - 0.75em);
+    }
+}
+
+.checklist-date {
+    text-align: right;
+}
+
+body {
+    background-color: #f5f5f8;
+}
+
+.bg-light {
+    background-color: white !important;
+}
+
+.container.container-main {
+    background-color: #ffffff;
+}
+
+.big-checkbox {
+    width: 1.5em; 
+    height: 1.5em;
+    border: none;
+}
+
+/*li.due-soon {
+    background-color: #FFEFC8;
+}
+
+li.past-due {
+    background-color: #FFCFCF;
+}
+*/
+li.cl-item-normal {
+    background-color: #F7F7FA;
+}
+
+a.checklist-head {
+    color: black;
+}
+
+.checklist-item {
+    font-size: 1.2em;
+}
+
+.header-link-align {
+    text-align: right;
+    vertical-align: center;
+    margin-top: 1em;
+}
+
+.button-like {
+    padding: 0.5em 1em 0.5em 1em;
+    border-radius: 0.35em;
+    color: white;
+    background-color: #3f3fff;
+}
+
+a.button-like {
+    color: white;
+}
+
+a.button-like:hover {
+    text-decoration: none;
+}
+
+h1.page-header {
+    padding-top: 0.3em;
+}
+
+img.navbar-img {
+    height: 1.5em;
+    margin-right: 0.15em;
+    padding-top: 0.2em;
+}
+
+.date-soon {
+    background-color: #F59F30;
+    color: white;
+    border-radius: 0.5em;
+    padding: 0.25em;
+}
+
+.date-late {
+    background-color: #E03030;
+    color: white;
+    border-radius: 0.5em;
+    padding: 0.25em;
+}
+
+.date-normal {
+    background-color: #3BA590;
+    color: white;
+    border-radius: 0.5em;
+    padding: 0.25em;
+}
+
+.hanging {
+    padding-left: 4em;
+    text-indent: -3em;
+}
+
+input[type=checkbox] {
+	display : none;
+}
+
+input[type=checkbox] + label {
+	background-image: url("../img/chk_on.png"); /** for preloading **/
+	background-image: url("../img/chk_off.png");
+	background-size: contain;
+	height: 1.5em;
+	width: 1.5em;
+	display: inline-block;
+	padding: 0 0 0 0px;
+	cursor: pointer;
+}
+
+input[type=checkbox]:checked + label {
+	background-image: url("../img/chk_on.png");
+	background-size: contain;
+	height: 1.5em;
+	width: 1.5em;
+	display: inline-block;
+	padding: 0 0 0 0px;
+}

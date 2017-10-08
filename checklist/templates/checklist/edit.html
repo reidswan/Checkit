@@ -1,0 +1,82 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %}Edit {{checklist.checklist_title}}{% endblock %}
+
+{% block content %}
+{% load staticfiles %}
+<br/>
+<div class="container">
+    <h1 class="page-header">{{page_title}}</h1>
+    <hr/>
+</div>
+<div class="container container-main">
+    <br/>
+    <form action="{% url 'checklist:post_edit' %}" method="post" class="form-horizontal" id="chk_form">
+        {% csrf_token %}
+        <input type="hidden" {% if checklist %}value="{{checklist.pk}}"{% else %}value=""{% endif %} id="checklist_id" name="checklist_id">
+        <div class="form-group row">
+            <label class="col-md-2 col-lg-1 col-form-label" for="title_edit"><strong>Title</strong></label>
+            <div class="col-md-4 col-lg-7">
+                <input class="form-control" type="text" name="title" id="title_edit" value="{{checklist.checklist_title}}" maxlength="100"/><br/>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <input type="date" class="form-control" name="duedate_date" id="duedate_date" {% if checklist.due_date %}value="{{ checklist.due_date|date:'Y-m-d' }}"{% endif %}/>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <input type="time" class="form-control" name="duedate_time" id="duedate_time" {% if checklist.due_date %}value="{{ checklist.due_date|date:'h:m:s' }}"{% endif %}/>
+            </div>
+        </div>
+        <div id="formRowsContainer">
+            {% for item in checklist.checklistitem_set.all %}
+            <div class="form-group row">
+                <label class="col-xs-2 col-md-2 col-lg-1 col-form-label" for="item{{item.id}}_title">Summary</label>
+                <div class="form-group col-xs-10 col-md-3 col-lg-3">
+                    <input class="form-control" type="text" name="item{{item.id}}_title" id="item{{ item.id }}_title" value="{{ item.item_title }}" maxlength="100"/>
+                </div>
+                <label class="col-xs-2 col-md-2 col-lg-1 col-form-label" for="item{{item.id}}_desc">Details</label>
+                <div class="form-group col-xs-9 col-md-4 col-lg-6">
+                    <input class="form-control" type="text" name="item{{item.id}}_desc" id="item{{ item.id }}_desc" value="{{ item.item_desc }}" maxlength="350"/>
+                </div>
+                <div class="col-xs-1 col-md-1"><button type="button" class="btn btn-outline-secondary" onclick="removeElem(this)"><img src="{% static "checklist/img/remove.png" %}" width="12pt" height="12pt"> </button></div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col-md-12"><button type="button" class="btn btn-outline-secondary" onclick="addRow()"><img src="{% static 'checklist/img/new.png' %}" width="12pt" height="12pt"> </button></div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-md-10"></div>
+            <div class="col-md-2" style="text-align: right; align-content: right;"><input type="submit" class="btn btn-default" value="Save"/></div>
+        </div>
+    </form>
+    <hr/>
+</div>
+{% endblock %}
+
+{% block javascript %} 
+{% load staticfiles %}
+<script>
+    var new_row_count = 0;
+    function addRow() {
+        var form_elem = document.getElementById('formRowsContainer');
+        var new_row = document.createElement("div");
+        new_row.className = "form-group row";
+        new_row.innerHTML = '<label class="col-xs-2 col-md-2 col-lg-1 col-form-label" for="itemnew_' + new_row_count + '_title">Summary</label>\n' +
+                '<div class="form-group col-xs-10 col-md-3 col-lg-3">\n' +
+                    '<input class="form-control" type="text" name="itemnew_' + new_row_count + '_title" id="itemnew_' + new_row_count + '_title" maxlength="100"/>\n' +
+                '</div>\n' +
+                '<label class="col-xs-2 col-md-2 col-lg-1 col-form-label" for="itemnew_' + new_row_count + '_desc">Details</label>\n' +
+                '<div class="form-group col-xs-9 col-md-4 col-lg-6">\n' +
+                    '<input class="form-control" type="text" name="itemnew_' + new_row_count + '_desc" id="itemnew_' + new_row_count + '_desc" maxlength="350"/>\n'+
+                '</div>\n' + 
+                '<div class="col-xs-1 col-md-1"><button type="button" class="btn btn-outline-secondary" onclick="removeElem(this)"><img src="{% static "checklist/img/remove.png" %}" width="12pt" height="12pt"> </button></div>';
+        new_row_count += 1;
+        form_elem.appendChild(new_row);
+    }
+
+    function removeElem(e) {
+        var remove = e.parentNode.parentNode;
+        remove.parentNode.removeChild(remove);
+    }
+</script>
+{% endblock %}

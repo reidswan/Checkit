@@ -1,0 +1,63 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %} {{checklist.checklist_title}}{% endblock %}
+
+{% block content %}
+<br/>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-8">
+            <h1 class="page-header">{{ checklist.checklist_title }}</h1>
+        </div>
+        <div class="col-xs-12 col-sm-4 header-link-align">
+            <a class="btn btn-outline-primary" href="{% url 'checklist:edit' checklist.id %}">Edit</a>
+        </div>
+    </div>
+    <hr/>
+</div>
+<div class="container container-main">
+    <br/>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 checklist-date"><span class="{% if checklist.due_soon %}date-soon{% elif checklist.past_due %}date-late{% else %}date-normal{% endif %}"><b>Due:</b> {{checklist.due_date}}</span></div>
+    </div>
+</div>
+<form>
+{% csrf_token %}
+    {% for item in checklist.checklistitem_set.all %}
+    <div class="container container-main"> 
+        <br/>
+        <div class="row">
+            <div class="col-xs-2 col-sm-1">
+                <span class="checklist-push">
+                    <input type="checkbox" {%if item.complete %}checked{% endif %} class="big-checkbox" style="text-align: right; align-content: right;" name="chk{{item.id}}" id="chk{{item.id}}" onchange="on_check({{checklist.id}}, {{item.id}}, this.checked)"/><label for="chk{{item.id}}"></label>
+                </span>
+            </div>
+            <!--div class="col-xs-10 col-sm-11"-->
+            <label class="col-xs-10 col-sm-11"><strong> {{ item.item_title }}</strong> - <em>{{ item.item_desc }}</em></label>
+            <!--/div-->
+        </div>
+        <br/>
+    </div>
+    {% endfor %}
+</form>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function on_check(checklist_id, citem_id, value) {
+        $.ajax({
+            url : "{% url 'checklist:ajax_item_check' %}",
+            method : "POST",
+            data : {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                'checklist' : checklist_id,
+                'checklist_item' : citem_id,
+                'value' : value
+            },  
+            dataType : 'json',
+            error: function () {
+                alert("Unable to send data");
+            }
+        });
+    };
+</script>
+{% endblock %}

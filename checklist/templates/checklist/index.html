@@ -1,0 +1,77 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %} My Checklists {% endblock %}
+
+{% block content %}
+<br/>
+<div class="container">
+    <h1 class="page-header">{{page_title}}</h1>
+    <hr/>
+</div>
+{% if checklists %}
+    {% for checklist in checklists %}
+    <div class="container container-main">
+        <br/>
+        <div class="row">
+            <div class="col-xs-12 col-sm-6">
+                <div class="checklist-head">
+                    <h3><a href="{% url 'checklist:view' checklist.id %}" class="checklist-head" >{{ checklist.checklist_title }}</a></h3>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-6 checklist-date"><span class="{% if checklist.due_soon %}date-soon{% elif checklist.past_due %}date-late{% else %}date-normal{% endif %}"><b>Due:</b> {{checklist.due_date}}</span></div>
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-sm-12 col-xs-12">
+                <ul class="list-group">
+                    {% for item in checklist.checklistitem_set.all %}
+                        <li class="cl-item-normal list-group-item">
+                            <div class="row">
+                                <div class="col-xs-1 col-sm-1"><input type="checkbox" {%if item.complete %}checked{% endif %} class="big-checkbox" style="text-align: right; align-content: bottom;" name="chk{{item.id}}" id="chk{{item.id}}" onclick="on_check({{checklist.id}}, {{item.id}}, this.checked)"/><label for="chk{{item.id}}"></label></div><div class="col-xs-11 col-sm-11"><strong>{{item.item_title}}</strong> {% if item.item_desc %} - <em>{{item.item_desc}}</em>{% endif %}</div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul><br/>
+            </div>
+        </div>
+        <hr/>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="container container-main">
+    {% if empty_list_string %}
+        <div class="row">
+            <div class="col-xs-12 col-md-6">
+                {{ empty_list_string }}
+            </div>
+        {% endif %}
+        {% if redirect_link %}
+            <div class="col-md-6">
+                <a href="{{ redirect_link }}">{{ redirect_string }}</a>
+            </div>
+        </div>
+        {% endif %}
+        <br/>
+    {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function on_check(checklist_id, citem_id, value) {
+        $.ajax({
+            url : "{% url 'checklist:ajax_item_check' %}",
+            method : "POST",
+            data : {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                'checklist' : checklist_id,
+                'checklist_item' : citem_id,
+                'value' : value
+            },  
+            dataType : 'json',
+            error: function () {
+                alert("Unable to send data");
+            }
+        });
+    };
+</script>
+{% endblock %}
