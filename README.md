@@ -1,6 +1,6 @@
 # Checkit
 
-Web app for managing basic checklists, with custom, portable Django app for actual checklist management. 
+Web app for managing basic checklists, with custom Django app for actual checklist management. 
 
 ## Features
 - Create, edit and delete checklists
