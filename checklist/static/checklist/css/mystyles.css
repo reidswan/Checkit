@@ -19,7 +19,9 @@
         height: 1.25em;    
         background-size: 1.25em;
         background-image: url("../img/new.png");
-        
+        margin-left: 10px;
+        margin-right: 10px;
+
         /*hide the text*/
         text-indent: 200%;
         white-space: nowrap;

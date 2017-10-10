@@ -1,12 +1,17 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from checklist.models import CheckList, CheckListItem
 from checklist.utils import parse_datetime
 from django.utils import timezone
 from django.urls import reverse
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.models import User
 import datetime
+import re
+
 
 recent_filter_delta = datetime.timedelta(days=1)
+emailregex = re.compile(r"^([a-zA-Z0-9\+\-_]+[\.]?)+@([a-zA-Z0-9\+\-_]+[\.]?)+\.[a-z]{2,}$")
 
 def index(request):
     recent_checklists = [checklist for checklist in CheckList.objects.order_by('due_date') if not checklist.is_complete()]
@@ -47,7 +52,7 @@ def checklist_view(request, checklist_id):
 def post_edit(request):
     '''Handle edit POST before redirecting'''
     if request.method != "POST": # only handle POSTed edits
-        return
+        raise Http404("")
     if 'checklist_id' not in request.POST.keys() or request.POST['checklist_id'] == '': # from /new
         print("NEW! :D") # debug
         checklist = CheckList(pub_date=timezone.now(), due_date = timezone.now() + datetime.timedelta(days=1))
@@ -110,3 +115,71 @@ def item_check(request):
         citem.complete = a
         citem.save()
     return JsonResponse({})
+
+def emailvalidate(request):
+    if request.method != "POST":
+        raise Http404("Cannot find resource")
+    result = {
+        'user_exists' : User.objects.filter(username=request.POST["email"]).count() > 0,
+    }
+    return JsonResponse(result)
+
+def register(request, email_errors = "", pwd_errors = ""):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:index"))
+    return render(request, 'checklist/register.html', context={ "email_errors" : email_errors, "pwd_errors" : pwd_errors })
+
+def register_result(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:index"))
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("checklist:index"))
+    keys = ["inputEmail", "inputPassword", "inputConfirm"]
+    for key in keys:
+        if not key in request.POST.keys():
+            raise Http404("an expected key was not supplied")
+    email_addr = request.POST["inputEmail"]
+    pwd = request.POST["inputPassword"]
+    pwdConfirm = request.POST["inputConfirm"]
+    email_errors= []
+    password_errors = []
+    if pwd != pwdConfirm:
+        password_errors.append("Passwords must match")
+    if len(pwd) < 8:
+        password_errors.append("Password must be at least 8 characters long")
+    if User.objects.filter(username=email_addr).count() > 0:
+        email_errors.append("That email is taken")
+    if emailregex.match(email_addr) is None:
+        email_errors.append("Email not in an acceptable format")
+    if email_errors != [] or password_errors != []:
+        return register(request, "; ".join(email_errors), "; ".join(password_errors))
+    else:
+        u = User.objects.create_user(username=email_addr, password=pwd)
+        if u is not None:
+            login(request, u)
+        return HttpResponseRedirect(reverse('checklist:index'))
+
+def logout_view(request):
+    if request.user.is_authenticated():
+        logout(request)
+    return HttpResponseRedirect(reverse("checklist:index"))
+
+def login_view(request, errors=""):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:index"))
+    return render(request, 'checklist/login.html', context={'errors' : errors=="_err"})
+
+def login_result(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("checklist:index"))
+    for key in ["inputEmail", "inputPassword"]:
+        if not key in request.POST.keys():
+            raise Http404("an expected key was not supplied")
+    email_addr = request.POST["inputEmail"]
+    pwd = request.POST["inputPassword"]
+    user = authenticate(username=email_addr, password=pwd)
+    if user is not None:
+        login(request, user)
+        return HttpResponseRedirect(reverse("checklist:index"))
+    return HttpResponseRedirect(reverse("checklist:login_error", kwargs={"errors":"_err"}))
+    

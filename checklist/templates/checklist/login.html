@@ -1,0 +1,31 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %} Register {% endblock %}
+
+{% block content %}
+<br/>
+<div class="container">
+    <h1 class="page-header">Register</h1>
+    <hr/>
+</div>
+<div class="container container-main">
+    <br/>
+    <form action="{% url 'checklist:login_result' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="inputEmail">Email address</label>
+            <input class="form-control" type="text" placeholder="Email" name="inputEmail" id="inputEmail">
+        </div>
+        <div class="form-group">
+            <label for="inputPassword">Password</label>
+            <input class="form-control" type="password" placeholder="Password" name="inputPassword" id="inputPassword">
+        </div>
+        {% if errors %}
+        <div class="alert alert-danger">
+            Failed to log in
+        </div>
+        {% endif %}
+        <input type="submit" class="btn btn-default" value="Submit" id="submitButton">
+    </form>
+    <br/>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %} Register {% endblock %}
+
+{% block content %}
+<br/>
+<div class="container">
+    <h1 class="page-header">Register</h1>
+    <hr/>
+</div>
+<div class="container container-main">
+    <br/>
+    <form action="{% url 'checklist:register_result' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="inputEmail">Email address</label>
+            <input class="form-control" type="text" placeholder="Email" name="inputEmail" id="inputEmail" onblur="emailValidate()">
+            <small id="emailHelpText" class="form-text text-muted">{%if email_errors%}{{email_errors}}{%endif%}</small>
+        </div>
+        <div class="form-group">
+            <label for="inputPassword">Password</label>
+            <input class="form-control" type="password" placeholder="Password" name="inputPassword" id="inputPassword">
+            <br/>
+            <input class="form-control" type="password" placeholder="Confirm password" name="inputConfirm" id="inputConfirm" onkeyup="confirmPassword()">
+            <small id="passwordConfirmHelpText" class="form-text text-muted">{% if pwd_errors %}{{pwd_errors}}{% endif %}</small>
+        </div>
+        <input type="submit" class="btn btn-default" value="Submit" id="submitButton">
+    </form>
+    <br/>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    var emailregex = /^([a-zA-Z0-9\+\-_]+[\.]?)+@([a-zA-Z0-9\+\-_]+[\.]?)+\.[a-z]{2,}$/;
+    function confirmPassword() {
+        var passwordA = document.getElementById("inputPassword");
+        var passwordB = document.getElementById("inputConfirm");
+        if (passwordA.value != passwordB.value) {
+            passwordA.className = "form-control is-invalid";
+            passwordB.className = "form-control is-invalid";
+            document.getElementById("passwordConfirmHelpText").innerText = "Passwords do not match";
+        } else {
+            passwordA.className = "form-control is-valid";
+            passwordB.className = "form-control is-valid";
+            document.getElementById("passwordConfirmHelpText").innerText = "";
+        }
+    };
+
+    function emailValidate() {
+        var email = document.getElementById("inputEmail").value;
+        if (!email.match(emailregex)) {
+            document.getElementById("emailHelpText").innerText = "Email is not in a valid format";
+        }
+
+        $.ajax({
+            url : "{% url 'checklist:ajax_emailvalidate' %}",
+            method : "POST",
+            data : {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                'email' : email,
+            },  
+            dataType : 'json',
+            error: function () {
+                alert("Unable to send data");
+            },
+            success : function(json, status, jqXHR) {
+                if (status == "success") {
+                    if (json["user_exists"]) {
+                        document.getElementById("emailHelpText").innerText = "Email is already in use";
+                    } 
+                }
+            },
+        });
+    };
+</script>
+{% endblock %}
