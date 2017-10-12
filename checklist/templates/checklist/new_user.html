@@ -1,0 +1,48 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %} My Checklists {% endblock %}
+
+{% block content %}
+{% load static %}
+<br/>
+<div class="container">
+    <h1 class="page-header">Welcome to Checkit</h1>
+    <hr/>
+</div>
+<div class="container container-main">
+    <br/>
+    <div class="row">
+        <div class="col-xs-12 col-sm-6"><h3>Features:</h3></div>
+        <div class="col-xs-12 col-sm-6 checklist-date"><span class="{% if checklist.due_soon %}date-soon{% elif checklist.past_due %}date-late{% else %}date-normal{% endif %}"><b>Due:</b> {{checklist.due_date}}</span></div>
+    </div>
+</div>
+{% for item in checklist.checklistitem_set.all %}
+<div class="container container-main"> 
+    <br/>
+    <div class="row">
+        <div class="col-xs-2 col-sm-1">
+            <span class="checklist-push">
+                <input type="checkbox" {%if item.complete %}checked{% endif %} class="big-checkbox" style="text-align: right; align-content: right;" disabled/><label for="chk{{item.id}}"></label>
+            </span>
+        </div>
+        <!--div class="col-xs-10 col-sm-11"-->
+        <label class="col-xs-10 col-sm-11"><strong> {{ item.item_title }}</strong> - <em>{{ item.item_desc }}</em></label>
+        <!--/div-->
+    </div>
+    <br/>
+</div>
+{% endfor %}
+<div class="container container-main"> 
+    <br/>
+    <div class="row">
+        <div class="col-xs-2 col-sm-1">
+            <span class="checklist-push">
+                <input type="checkbox" checked class="big-checkbox" style="text-align: right; align-content: right;" disabled/><label for="chk{{item.id}}"></label>
+            </span>
+        </div>
+        <!--div class="col-xs-10 col-sm-11"-->
+        <label class="col-xs-10 col-sm-11"><strong>Free!</strong> - <em><a href="{% url 'checklist:register' %}">Registration</a> is quick and easy and costs you nothing</em></label>
+        <!--/div-->
+    </div>
+    <br/>
+</div>
+{% endblock %}

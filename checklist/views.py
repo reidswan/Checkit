@@ -5,7 +5,7 @@ from checklist.utils import parse_datetime
 from django.utils import timezone
 from django.urls import reverse
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 import datetime
 import re
 
@@ -14,15 +14,19 @@ recent_filter_delta = datetime.timedelta(days=1)
 emailregex = re.compile(r"^([a-zA-Z0-9\+\-_]+[\.]?)+@([a-zA-Z0-9\+\-_]+[\.]?)+\.[a-z]{2,}$")
 
 def index(request):
-    recent_checklists = [checklist for checklist in CheckList.objects.order_by('due_date') if not checklist.is_complete()]
-    context = {
-        'checklists' : recent_checklists,
-        'empty_list_string' : 'You have no incomplete checklists!',
-        'redirect_link' : reverse('checklist:complete'),
-        'redirect_string' : 'See completed checklists',
-        'page_title' : 'Checklists',
-    }
-    return render(request, 'checklist/index.html', context)
+    if request.user.is_authenticated():
+        recent_checklists = [checklist for checklist in CheckList.objects.order_by('due_date') if not checklist.is_complete()]
+        context = {
+            'checklists' : recent_checklists,
+            'empty_list_string' : 'You have no incomplete checklists!',
+            'redirect_link' : reverse('checklist:complete'),
+            'redirect_string' : 'See completed checklists',
+            'page_title' : 'Checklists',
+        }
+        return render(request, 'checklist/index.html', context)
+    new_user_checklist = User.objects.get(username="anon").checklist_set.first()
+    new_user_checklist.due_date = timezone.now() + recent_filter_delta
+    return render(request, 'checklist/new_user.html', { "checklist" : new_user_checklist })
 
 def complete(request):
     recent_checklists = [checklist for checklist in CheckList.objects.order_by('due_date') if checklist.is_complete()]

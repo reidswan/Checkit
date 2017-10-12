@@ -132,6 +132,7 @@ img.navbar-img {
     text-indent: -3em;
 }
 
+/* custom checkbox */
 input[type=checkbox] {
 	display : none;
 }
@@ -154,4 +155,9 @@ input[type=checkbox]:checked + label {
 	width: 1.5em;
 	display: inline-block;
 	padding: 0 0 0 0px;
+}
+
+div.hint {
+    text-align: center;
+    border-radius: 20px;
 }

@@ -1,11 +1,13 @@
 from django.db import models
 import datetime
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 class CheckList(models.Model):
     checklist_title = models.CharField(max_length=100)
     pub_date = models.DateTimeField('date published')
     due_date = models.DateTimeField()
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     def __repr__(self):
         return "Checklist %s" % self.checklist_title
     def __str__(self):
