@@ -19,4 +19,5 @@ urlpatterns = [
     url(r'^login$', views.login_view, name='login'),
     url(r'^login(?P<errors>_err)$', views.login_view, name='login_error'),
     url(r'^loginresult$', views.login_result, name='login_result'),
+    url(r'^error$', views.error, name="error")
 ]

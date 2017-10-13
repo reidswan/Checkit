@@ -6,6 +6,8 @@ Web app for managing basic checklists, with custom Django app for actual checkli
 - Create, edit and delete checklists
 - Set due date and time
 - Responsive mobile-first UI
+- User accounts
+- AJAX-based checklist updating
 
 # Technologies
 ## Back-end

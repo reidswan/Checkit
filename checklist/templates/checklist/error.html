@@ -1,0 +1,22 @@
+{% extends 'checklist/base.html' %}
+{% block pagetitle %} My Checklists {% endblock %}
+
+
+{% block content %}
+<br/>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <h1 class="page-header">Error - {{error_title}}</h1>
+        </div>
+    </div>
+    <hr/>
+</div>
+<div class="container container-main">
+    <br/>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">{{error_text}}</div>
+    </div>
+    <br/>
+</div>
+{% endblock %}

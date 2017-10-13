@@ -15,7 +15,8 @@ emailregex = re.compile(r"^([a-zA-Z0-9\+\-_]+[\.]?)+@([a-zA-Z0-9\+\-_]+[\.]?)+\.
 
 def index(request):
     if request.user.is_authenticated():
-        recent_checklists = [checklist for checklist in CheckList.objects.order_by('due_date') if not checklist.is_complete()]
+        u = request.user
+        recent_checklists = [checklist for checklist in u.checklist_set.order_by('due_date') if not checklist.is_complete()]
         context = {
             'checklists' : recent_checklists,
             'empty_list_string' : 'You have no incomplete checklists!',
@@ -29,7 +30,10 @@ def index(request):
     return render(request, 'checklist/new_user.html', { "checklist" : new_user_checklist })
 
 def complete(request):
-    recent_checklists = [checklist for checklist in CheckList.objects.order_by('due_date') if checklist.is_complete()]
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:login"))
+    u = request.user
+    recent_checklists = [checklist for checklist in u.checklist_set.order_by('due_date') if checklist.is_complete()]
     context = {
         'checklists' : recent_checklists,
         'empty_list_string' : 'You have no completed checklists!',
@@ -40,8 +44,10 @@ def complete(request):
     return render(request, 'checklist/index.html', context)
 
 def all(request):
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:login"))
     context = {
-        'checklists' : CheckList.objects.order_by('due_date'),
+        'checklists' : request.user.checklist_set.order_by('due_date'),
         'empty_list_string' : 'You have no checklists yet!',
         'redirect_link' : '#',
         'redirect_string' : 'Make one!',
@@ -50,19 +56,28 @@ def all(request):
     return render(request, 'checklist/index.html', context)
 
 def checklist_view(request, checklist_id):
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:login"))
     checklist = get_object_or_404(CheckList, pk=checklist_id)
+    if request.user.pk != checklist.owner.pk:
+        return make_error(request, "Access error", "You do not have permission to view this checklist")
     return render(request, 'checklist/view.html', {'checklist' : checklist})
 
 def post_edit(request):
     '''Handle edit POST before redirecting'''
+    if not request.user.is_authenticated:
+        raise Http404("")
     if request.method != "POST": # only handle POSTed edits
         raise Http404("")
-    if 'checklist_id' not in request.POST.keys() or request.POST['checklist_id'] == '': # from /new
+    if 'checklist_id' not in request.POST.keys() or request.POST['checklist_id'] in ["None", None, '']: # from /new
         print("NEW! :D") # debug
         checklist = CheckList(pub_date=timezone.now(), due_date = timezone.now() + datetime.timedelta(days=1))
+        checklist.owner = request.user
     else: # from /edit
         checklist_id = int(request.POST['checklist_id'])
         checklist = get_object_or_404(CheckList, pk=checklist_id)
+    if checklist.owner.pk != request.user.pk:
+        raise Http404("")
     if "title" in request.POST.keys():
         checklist.checklist_title = request.POST["title"]
     if "duedate_date" in request.POST.keys() and "duedate_time" in request.POST.keys():
@@ -99,18 +114,28 @@ def post_edit(request):
     return HttpResponseRedirect(reverse('checklist:view', args=[checklist.pk]))
 
 def new_checklist(request):
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:login"))
     return render(request, 'checklist/edit.html', {'checklist' : CheckList(), 'page_title' : 'New Checklist'})
 
 def checklist_edit(request, checklist_id):
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse("checklist:login"))
     checklist = get_object_or_404(CheckList, pk=checklist_id)
+    if request.user.pk != checklist.owner.pk:
+        return make_error(request, "Access error", "You do not have permission to view this checklist")
     return render(request, 'checklist/edit.html', {'checklist' : checklist, 'page_title' : 'Edit Checklist'})
 
 def item_check(request):
+    if not request.user.is_authenticated():
+        return
     if 'checklist' in request.POST.keys() and 'checklist_item' in request.POST.keys():
         checklist = CheckList.objects.get(pk=request.POST['checklist'])
         citem = CheckListItem.objects.get(pk=request.POST['checklist_item'])
         if not citem.checklist == checklist:
-            return
+            return HttpResponseForbidden()
+        elif not checklist.owner.pk == request.user.pk:
+            return HttpResponseForbidden()
         a = request.POST["value"]
         if a == 'true':
            a = True
@@ -187,3 +212,18 @@ def login_result(request):
         return HttpResponseRedirect(reverse("checklist:index"))
     return HttpResponseRedirect(reverse("checklist:login_error", kwargs={"errors":"_err"}))
     
+def error(request):
+    if "e_title" not in request.GET.keys() or "e_msg" not in request.GET.keys():
+        context={
+            "error_title" : "Badly specified error message",
+            "error_text" : "Error message is missing one or more fields"
+        }
+    else:
+        context = {
+            "error_title" : request.GET["e_title"],
+            "error_text" : request.GET["e_msg"]
+        }
+    return render(request, "checklist/error.html", context)
+
+def make_error(request, title, desc):
+    return render(request, "checklist/error.html", {"error_title" : title, "error_text" : desc})
